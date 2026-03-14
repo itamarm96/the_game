@@ -1,12 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 
 export default function EntrancePage() {
   const router = useRouter();
+  const [hasStarted, setHasStarted] = useState(false);
+
+  // Play romantic intro sound when the user clicks anywhere on the screen for the first time
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (!hasStarted) {
+        if (typeof window !== 'undefined' && (window as any).playIntroSound) {
+          (window as any).playIntroSound();
+        }
+        setHasStarted(true);
+      }
+    };
+
+    window.addEventListener('click', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [hasStarted]);
 
   const handleStart = () => {
     router.push('/prep');
