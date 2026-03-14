@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crimson-red: #DC143C;
+  --color-gold: #FFD700;
+  --color-charcoal-dark: #121212;
+  --color-charcoal-light: #1E1E1E;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Heebo", "Inter", sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: #121212;
+    --foreground: #F5F5F5;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Heebo", sans-serif;
+  overflow-x: hidden;
+  /* Glowing background effect */
+  background-image: radial-gradient(circle at top right, rgba(220, 20, 60, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at bottom left, rgba(255, 215, 0, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Custom Scrollbar for a premium look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(220, 20, 60, 0.5);
+  border-radius: 20px;
+}
+
+/* Animations */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.1); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1s infinite;
+}
