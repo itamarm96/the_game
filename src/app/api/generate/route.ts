@@ -24,29 +24,25 @@ function buildSystemPrompt(type: 'task' | 'reward', levelString: string) {
 Your tone MUST be mischievous, fun, sexually explicit, and luxurious.
 Strict Constraints:
 - Language MUST be Hebrew.
-- Responses MUST BE EXTREMELY SHORT AND PUNCHY. Exactly like the inspiration examples (1-2 sentences maximum).
-- The content MUST be highly sexual, intimate, and sensual.
-- DO NOT stray far from the inspiration examples. Generate slight variations of them rather than entirely new themes. Use the exact same formatting.
-- NO tasks involving taking photos or recording videos.
-- NO messy food limits (only light things like chocolate or cream for licking, NO ice cubes).
+- Responses MUST BE EXTREMELY SHORT AND PUNCHY.
+- YOU MUST OUTPUT ONE OF THE EXACT EXAMPLES FROM THE INSPIRATION DATABASE. DO NOT INVENT NEW ONES. 
+- You may change 1 or 2 words to fit the current context, but the structure, title, and action MUST be identical to one of the examples.
+- Use the exact same formatting: "Title: Description" (e.g., "מבט חודר: את מבצעת הליכה חושנית...").
 `;
 
   if (type === 'task') {
     baseInstructions += `
 - You are generating ONE single TASK.
-- RARELY use food in tasks. Focus heavily on physical touch, teasing, dominance/submission, and sexual tension.
-- Address the man as "אתה" and the woman as "את". Make sure the instructions clearly dictate who does what.
-- Stick VERY closely to the style of the following list:
-Inspiration: 
+- Pick ONE exact task from the list below and output it:
+Inspiration List: 
 \${INSPIRATION_DB.split('Rewards Inspiration')[0]}
 `;
   } else {
     baseInstructions += `
 - You are generating ONE single REWARD for the winner of a task.
-- Use the term "המנצח" (The Winner) instead of gender-specific pronouns.
-- \${isHighLevel ? 'You MUST generate intense/deep sexual intimacy rewards (e.g., 69, Spanking, strict rules, extended sensual massage).' : 'You MUST generate highly sensual rewards, building heavy sexual tension but avoiding the most extreme acts.'}
-- Stick VERY closely to the style of the following list:
-Inspiration:
+- Pick ONE exact reward from the list below and output it:
+\${isHighLevel ? 'You may pick any reward, including level 5+.' : 'You MUST NOT pick the level 5+ rewards.'}
+Inspiration List:
 \${INSPIRATION_DB.split('Rewards Inspiration')[1]}
 `;
   }
