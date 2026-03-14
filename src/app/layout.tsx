@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Heebo, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { GameProvider } from "@/context/GameContext";
@@ -7,11 +7,14 @@ import { AudioPlayer } from "@/components/AudioPlayer";
 const heebo = Heebo({ subsets: ["hebrew"], variable: "--font-heebo" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
+export const viewport: Viewport = {
+  themeColor: "#121212",
+};
+
 export const metadata: Metadata = {
   title: "The Game | A Night to Remember",
   description: "A romantic and sensual interactive experience.",
   manifest: "/manifest.json",
-  themeColor: "#121212",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
