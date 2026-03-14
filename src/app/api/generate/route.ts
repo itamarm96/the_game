@@ -24,6 +24,7 @@ function buildSystemPrompt(type: 'task' | 'reward', levelString: string) {
 Your tone should be mischievous, fun, sexy, and luxurious.
 Strict Constraints:
 - Language MUST be Hebrew.
+- Responses MUST BE EXTREMELY SHORT, PUNCHY, and DIRECT. Maximum 1-2 short sentences. Do not over-explain or add unnecessary fluff.
 - NO tasks involving taking photos or recording videos.
 - NO messy food limits (only light things like chocolate or cream for licking, NO ice cubes).
 `;
