@@ -9,7 +9,7 @@ import { Music, ArrowRight } from 'lucide-react';
 
 export default function PrepPage() {
   const router = useRouter();
-  const { setIsLoading } = useGame();
+  const { setIsLoading, level } = useGame();
 
   const handleCreateTask = () => {
     setIsLoading(true);
@@ -22,8 +22,15 @@ export default function PrepPage() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center min-h-[80vh] w-full"
+      className="flex flex-col items-center justify-center min-h-[80vh] w-full relative"
     >
+      {/* Level Badge */}
+      <div className="absolute top-0 left-0 px-4 py-3">
+        <div className="level-badge">
+          רמה {level}
+        </div>
+      </div>
+
       <div className="w-full max-w-md space-y-10 text-center">
         
         <div className="space-y-4">

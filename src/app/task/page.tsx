@@ -4,8 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useGame } from '@/context/GameContext';
-import { RefreshCw, CheckCircle, Home } from 'lucide-react';
+import { useGame, type GameContent } from '@/context/GameContext';
+import { RefreshCw, CheckCircle, Home, Wine } from 'lucide-react';
 
 export default function TaskPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function TaskPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch task');
-      setCurrentTask(data.result);
+      setCurrentTask(data.result as GameContent);
     } catch (err: any) {
       setError("אופס, משהו השתבש בייצור המשימה. נסה שוב.");
       console.error(err);
@@ -47,6 +47,7 @@ export default function TaskPage() {
   };
 
   const handleReplace = () => {
+    setCurrentTask(null);
     fetchTask();
   };
 
@@ -56,13 +57,15 @@ export default function TaskPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[85vh] w-full text-center relative">
-      
-      {/* Top Bar */}
-      <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-2">
-        <button onClick={handleHome} className="text-white/50 hover:text-white transition-colors">
-          <Home size={24} />
+
+      {/* Top Bar — Level + Home */}
+      <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-3">
+        <div className="level-badge">
+          רמה {level}
+        </div>
+        <button onClick={handleHome} className="text-white/50 hover:text-white transition-colors p-2">
+          <Home size={22} />
         </button>
-        <span className="text-white/30 text-xs tracking-widest uppercase">רמה {level}</span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -93,21 +96,50 @@ export default function TaskPage() {
             <p className="text-red-400">{error}</p>
             <Button onClick={handleReplace} variant="outline">נסה שוב</Button>
           </motion.div>
-        ) : (
+        ) : currentTask ? (
           <motion.div
             key="content"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full flex flex-col items-center"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 w-full shadow-2xl relative overflow-hidden">
+            {/* Task Card */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-7 mb-8 w-full shadow-2xl relative overflow-hidden">
+              {/* Top accent line */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-crimson-red to-transparent"></div>
-              <h2 className="text-2xl font-playfair text-gold mb-6 tracking-wide">המשימה שלכם</h2>
-              <p className="text-white/90 text-xl leading-relaxed font-light">
-                {currentTask}
-              </p>
+
+              {/* Dynamic Title — the mischievous task name */}
+              <motion.h2
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-2xl font-playfair text-gold mb-5 tracking-wide leading-snug"
+              >
+                {currentTask.title}
+              </motion.h2>
+
+              {/* Description — scrollable for long text */}
+              <div className="max-h-[40vh] overflow-y-auto custom-scrollbar mb-5">
+                <p className="text-white/90 text-lg leading-relaxed font-light">
+                  {currentTask.description}
+                </p>
+              </div>
+
+              {/* Drinking Rule */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="bg-crimson-red/15 border border-crimson-red/30 rounded-2xl p-4 flex items-start gap-3"
+              >
+                <Wine className="text-crimson-red mt-1 shrink-0" size={20} />
+                <p className="text-white/85 text-base leading-relaxed text-right">
+                  {currentTask.drinkingRule}
+                </p>
+              </motion.div>
             </div>
 
+            {/* Action Buttons */}
             <div className="w-full space-y-4">
               <Button onClick={handleComplete} size="lg" className="w-full text-xl group">
                 השלמתי את המשימה
@@ -120,7 +152,7 @@ export default function TaskPage() {
               </Button>
             </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

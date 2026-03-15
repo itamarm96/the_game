@@ -4,21 +4,20 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useGame } from '@/context/GameContext';
-import { Play, ArrowRight, Pause } from 'lucide-react';
+import { useGame, type GameContent } from '@/context/GameContext';
+import { Play, ArrowRight, Pause, Home, Wine } from 'lucide-react';
 
 export default function RewardPage() {
   const router = useRouter();
   const { currentReward, setCurrentReward, incrementTaskCount, setCurrentTask, level } = useGame();
   const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Timer state
-  const TOTAL_TIME = 180; // 3 minutes in seconds
+  const TOTAL_TIME = 180; // 3 minutes
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const nextBeatTimeRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchReward = useCallback(async () => {
@@ -32,8 +31,7 @@ export default function RewardPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch reward');
-      setCurrentReward(data.result);
-      // Auto-start timer when reward is loaded
+      setCurrentReward(data.result as GameContent);
       setIsTimerRunning(true);
     } catch (err: any) {
       setError("אופס, משהו השתבש. נסה שוב.");
@@ -51,31 +49,31 @@ export default function RewardPage() {
     }
   }, [currentReward, fetchReward]);
 
-  // Audio system for the heartbeat
+  // Heartbeat sound via Web Audio API
   const playHeartbeat = useCallback(() => {
     try {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
       const ctx = audioContextRef.current;
-      
+
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
-      
+
       oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(50, ctx.currentTime); // Deep bass sound
+      oscillator.frequency.setValueAtTime(50, ctx.currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
+
+      gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
-      
+
       oscillator.start();
       oscillator.stop(ctx.currentTime + 0.3);
-    } catch(e) {
-      // Ignore if audiocontext is not allowed yet by browser
+    } catch (e) {
+      // Ignore if audio context not allowed
     }
   }, []);
 
@@ -96,10 +94,16 @@ export default function RewardPage() {
 
   const handleNextTask = () => {
     setIsTimerRunning(false);
+    setTimeLeft(TOTAL_TIME);
     incrementTaskCount();
     setCurrentTask(null);
     setCurrentReward(null);
     router.push('/task');
+  };
+
+  const handleHome = () => {
+    setIsTimerRunning(false);
+    router.push('/prep');
   };
 
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
@@ -114,6 +118,17 @@ export default function RewardPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[85vh] w-full text-center relative">
+
+      {/* Top Bar — Level + Home */}
+      <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-3">
+        <div className="level-badge">
+          רמה {level}
+        </div>
+        <button onClick={handleHome} className="text-white/50 hover:text-white transition-colors p-2">
+          <Home size={22} />
+        </button>
+      </div>
+
       <AnimatePresence mode="wait">
         {localLoading ? (
           <motion.div
@@ -136,37 +151,60 @@ export default function RewardPage() {
             <p className="text-red-400">{error}</p>
             <Button onClick={fetchReward} variant="outline">נסה שוב</Button>
           </motion.div>
-        ) : (
+        ) : currentReward ? (
           <motion.div
             key="content"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-full flex flex-col items-center"
           >
-            <h1 className="text-4xl font-playfair font-bold text-gold mb-8 drop-shadow-lg">
-              פרס למנצח
-            </h1>
+            {/* Dynamic Reward Title */}
+            <motion.h1
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl md:text-4xl font-playfair font-bold text-gold mb-6 drop-shadow-lg leading-snug"
+            >
+              🏆 {currentReward.title}
+            </motion.h1>
 
-            <div className="bg-black/40 backdrop-blur-lg border border-gold/30 rounded-2xl p-8 mb-10 w-full shadow-[0_0_30px_rgba(255,215,0,0.1)] relative">
-              <p className="text-white text-xl leading-relaxed font-light">
-                {currentReward}
-              </p>
+            {/* Reward Card */}
+            <div className="bg-black/40 backdrop-blur-lg border border-gold/30 rounded-2xl p-7 mb-6 w-full shadow-[0_0_30px_rgba(255,215,0,0.1)] relative">
+              {/* Description — scrollable */}
+              <div className="max-h-[35vh] overflow-y-auto custom-scrollbar mb-5">
+                <p className="text-white text-lg leading-relaxed font-light">
+                  {currentReward.description}
+                </p>
+              </div>
+
+              {/* Drinking Rule */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gold/10 border border-gold/25 rounded-2xl p-4 flex items-start gap-3"
+              >
+                <Wine className="text-gold mt-1 shrink-0" size={20} />
+                <p className="text-white/85 text-base leading-relaxed text-right">
+                  {currentReward.drinkingRule}
+                </p>
+              </motion.div>
             </div>
 
             {/* Timer UI */}
-            <div className="w-full mb-12 space-y-4">
+            <div className="w-full mb-10 space-y-4">
               <div className="flex justify-between items-center px-2 mb-2">
                 <span className="text-white/60 text-sm">זמן נותר</span>
-                <span className={`text-2xl font-mono font-bold \\${timeLeft < 30 ? 'text-crimson-red animate-pulse' : 'text-white'}`}>
+                <span className={`text-2xl font-mono font-bold ${timeLeft < 30 ? 'text-crimson-red animate-pulse' : 'text-white'}`}>
                   {formatTime(timeLeft)}
                 </span>
                 <button onClick={toggleTimer} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
                   {isTimerRunning ? <Pause size={16} /> : <Play size={16} />}
                 </button>
               </div>
-              
+
               <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden relative border border-white/5">
-                <motion.div 
+                <motion.div
                   className="absolute top-0 left-0 h-full bg-gradient-to-r from-crimson-red to-red-500 rounded-full shadow-[0_0_10px_rgba(220,20,60,0.8)]"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
@@ -180,7 +218,7 @@ export default function RewardPage() {
               <ArrowRight className="ml-2 group-hover:-translate-x-1 transition-transform" />
             </Button>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );
