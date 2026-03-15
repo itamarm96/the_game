@@ -19,7 +19,7 @@ export const generateContent = async (systemInstruction: string, prompt: string)
       contents: prompt,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.75,
+        temperature: 0.65,
         responseMimeType: "application/json",
       },
     });
