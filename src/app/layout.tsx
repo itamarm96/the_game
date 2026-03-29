@@ -3,17 +3,18 @@ import { Heebo, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { GameProvider } from "@/context/GameContext";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import FloatingParticles from "@/components/FloatingParticles";
 
 const heebo = Heebo({ subsets: ["hebrew"], variable: "--font-heebo" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
 export const viewport: Viewport = {
-  themeColor: "#121212",
+  themeColor: "#0a0a0f",
 };
 
 export const metadata: Metadata = {
   title: "The Game | A Night to Remember",
-  description: "A romantic and sensual interactive experience.",
+  description: "A romantic and sensual interactive experience for couples.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -28,11 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`\\${heebo.variable} \\${playfair.variable}`}>
+    <html lang="he" dir="rtl" className={`${heebo.variable} ${playfair.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className="antialiased min-h-screen relative">
+        <FloatingParticles />
         <AudioPlayer />
         <GameProvider>
           <main className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center p-6 relative z-10">

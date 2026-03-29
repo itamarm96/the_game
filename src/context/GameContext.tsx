@@ -1,49 +1,101 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-export type GameContent = {
-  title: string;
-  description: string;
-  drinkingRule: string;
-};
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+  type TaskEntry,
+  type RewardEntry,
+  pickTask,
+  pickReward,
+  getMaxIntensity,
+  INTENSITY_CONFIG,
+} from '@/lib/inspirationDb';
 
 type GameContextType = {
-  taskCount: number;
-  currentTask: GameContent | null;
-  currentReward: GameContent | null;
-  isLoading: boolean;
-  incrementTaskCount: () => void;
-  setCurrentTask: (task: GameContent | null) => void;
-  setCurrentReward: (reward: GameContent | null) => void;
-  setIsLoading: (loading: boolean) => void;
+  round: number;
+  currentTask: TaskEntry | null;
+  currentReward: RewardEntry | null;
+  usedTaskIds: number[];
+  usedRewardIds: number[];
+  maxIntensity: 1 | 2 | 3;
+  intensityLabel: string;
+  intensityIcon: string;
+
+  generateTask: () => TaskEntry;
+  generateReward: () => RewardEntry;
+  setCurrentTask: (task: TaskEntry | null) => void;
+  setCurrentReward: (reward: RewardEntry | null) => void;
+  advanceRound: () => void;
   resetGame: () => void;
-  level: number;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [taskCount, setTaskCount] = useState(0);
-  const [currentTask, setCurrentTask] = useState<GameContent | null>(null);
-  const [currentReward, setCurrentReward] = useState<GameContent | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [round, setRound] = useState(1);
+  const [currentTask, setCurrentTask] = useState<TaskEntry | null>(null);
+  const [currentReward, setCurrentReward] = useState<RewardEntry | null>(null);
+  const [usedTaskIds, setUsedTaskIds] = useState<number[]>([]);
+  const [usedRewardIds, setUsedRewardIds] = useState<number[]>([]);
 
-  const incrementTaskCount = () => setTaskCount(prev => prev + 1);
-  const resetGame = () => {
-    setTaskCount(0);
+  const maxIntensity = getMaxIntensity(round);
+  const intensityLabel = INTENSITY_CONFIG[maxIntensity].label;
+  const intensityIcon = INTENSITY_CONFIG[maxIntensity].icon;
+
+  const generateTask = useCallback(() => {
+    const { entry, resetIds } = pickTask(round, usedTaskIds);
+    if (resetIds) {
+      setUsedTaskIds([entry.id]);
+    } else {
+      setUsedTaskIds((prev) => [...prev, entry.id]);
+    }
+    setCurrentTask(entry);
+    return entry;
+  }, [round, usedTaskIds]);
+
+  const generateReward = useCallback(() => {
+    const { entry, resetIds } = pickReward(round, usedRewardIds);
+    if (resetIds) {
+      setUsedRewardIds([entry.id]);
+    } else {
+      setUsedRewardIds((prev) => [...prev, entry.id]);
+    }
+    setCurrentReward(entry);
+    return entry;
+  }, [round, usedRewardIds]);
+
+  const advanceRound = useCallback(() => {
+    setRound((prev) => prev + 1);
     setCurrentTask(null);
     setCurrentReward(null);
-  };
+  }, []);
 
-  // Each completed task-reward cycle = 1 level. No cap.
-  const level = Math.floor(taskCount / 2) + 1;
+  const resetGame = useCallback(() => {
+    setRound(1);
+    setCurrentTask(null);
+    setCurrentReward(null);
+    setUsedTaskIds([]);
+    setUsedRewardIds([]);
+  }, []);
 
   return (
-    <GameContext.Provider value={{
-      taskCount, currentTask, currentReward, isLoading,
-      incrementTaskCount, setCurrentTask, setCurrentReward, setIsLoading, resetGame, level
-    }}>
+    <GameContext.Provider
+      value={{
+        round,
+        currentTask,
+        currentReward,
+        usedTaskIds,
+        usedRewardIds,
+        maxIntensity,
+        intensityLabel,
+        intensityIcon,
+        generateTask,
+        generateReward,
+        setCurrentTask,
+        setCurrentReward,
+        advanceRound,
+        resetGame,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );
